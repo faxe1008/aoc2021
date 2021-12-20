@@ -16,6 +16,7 @@ struct NavigationCommand {
 struct Submarine {
     horizontal_pos: u32,
     depth: u32,
+    aim: u32,
 }
 
 impl NavigationCommand {
@@ -40,9 +41,12 @@ impl NavigationCommand {
 impl Submarine {
     fn execute_command(&mut self, command: &NavigationCommand) {
         match command.direction {
-            Direction::Down => self.depth += command.amount,
-            Direction::Forward => self.horizontal_pos += command.amount,
-            Direction::Up => self.depth -= command.amount,
+            Direction::Down => self.aim += command.amount,
+            Direction::Forward => {
+                self.horizontal_pos += command.amount;
+                self.depth += self.aim * command.amount;
+            }
+            Direction::Up => self.aim -= command.amount,
         };
     }
 }
@@ -65,7 +69,9 @@ fn main() {
         submarine.execute_command(command);
     }
     println!(
-        "Submarine final position is {}:{}",
-        submarine.horizontal_pos, submarine.depth
+        "Submarine final position is {};{}: {}",
+        submarine.horizontal_pos,
+        submarine.depth,
+        submarine.horizontal_pos * submarine.depth
     );
 }
