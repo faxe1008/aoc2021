@@ -10,6 +10,7 @@ struct BingoCell {
 
 struct BingoBoard {
     cells: Vec<BingoCell>,
+    has_won: bool,
 }
 
 impl BingoBoard {
@@ -28,7 +29,10 @@ impl BingoBoard {
                 });
             }
         }
-        BingoBoard { cells }
+        BingoBoard {
+            cells,
+            has_won: false,
+        }
     }
 
     fn ugly_print(&self) {
@@ -110,15 +114,23 @@ fn main() {
         boards.push(board);
     }
 
+    let mut board_with_bingo = 0usize;
+    let board_count = boards.len();
     'number_loop: for bingo_number in called_out_numbers {
         for board in &mut boards {
+            if board.has_won {
+                continue;
+            }
             board.mark_number(bingo_number);
             if board.has_bingo() {
-                println!("Board has bingo!!!");
-                board.ugly_print();
-                println!("Board sum is: {}", board.sum());
-                println!("Current number is: {}", bingo_number);
-                break 'number_loop;
+                board.has_won = true;
+                if board_with_bingo == board_count - 1 {
+                    println!("And the last winner was ....");
+                    board.ugly_print();
+                    println!("Sum of cells: {}", board.sum());
+                    println!("Called out number: {}", bingo_number);
+                }
+                board_with_bingo += 1;
             }
         }
     }
