@@ -1,3 +1,4 @@
+#![feature(vec_retain_mut)]
 use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -15,6 +16,10 @@ fn set_bit(val: u32, bit: u32, active: bool) -> u32 {
     }
 }
 
+fn has_bit_set(val: u32, bit: u32) -> bool {
+    ((val & (1 << bit)) >> bit) == 1
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
@@ -23,24 +28,38 @@ fn main() {
 
     let file = File::open(&args[1]).expect("Error opening file");
     let reader = BufReader::new(file);
-    let report_codes: Vec<u32> = reader
+    let mut o2_list: Vec<u32> = reader
         .lines()
         .map(|x| u32::from_str_radix(&x.unwrap(), 2).expect("Error converting"))
         .collect();
 
-    let mut gamma_rate: u32 = 0;
-    let mut epsilon_rate: u32 = 0;
+    let mut co2_list = o2_list.clone();
+
     for i in 0..12 {
-        let (zero_occ, one_occ) = count_occurences(&report_codes, i);
-        println!("Bit Nr. {} ========== 0: {}, 1: {}", i, zero_occ, one_occ);
+        let (zero_occ, one_occ) = count_occurences(&o2_list, i);
         if one_occ > zero_occ {
-            gamma_rate = set_bit(gamma_rate, i, true);
-            epsilon_rate = set_bit(epsilon_rate, i, false);
+            if o2_list.len() > 1 {
+                o2_list.retain_mut(|x| has_bit_set(*x, i));
+            }
+            if co2_list.len() > 1 {
+                co2_list.retain_mut(|x| !has_bit_set(*x, i))
+            }
+        } else if zero_occ > one_occ {
+            if o2_list.len() > 1 {
+                o2_list.retain_mut(|x| !has_bit_set(*x, i));
+            }
+            if co2_list.len() > 1 {
+                co2_list.retain_mut(|x| has_bit_set(*x, i));
+            }
         } else {
-            gamma_rate = set_bit(gamma_rate, i, false);
-            epsilon_rate = set_bit(epsilon_rate, i, true);
+            if o2_list.len() > 1 {
+                o2_list.retain_mut(|x| has_bit_set(*x, i));
+            }
+            if co2_list.len() > 1 {
+                co2_list.retain_mut(|x| !has_bit_set(*x, i));
+            }
         }
     }
-
-    println!("Gamma,Epsilon: {}, {}", gamma_rate, epsilon_rate);
+    println!("O2 Codes: {:?}", o2_list);
+    println!("CO2 Codes: {:?}", co2_list);
 }
