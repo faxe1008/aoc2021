@@ -49,10 +49,11 @@ fn main() {
     println!("");
     println!("");
 
-    const POLYMERIZATION_COUNT: usize = 10;
+    const POLYMERIZATION_COUNT: usize = 40;
     for i in 1..=POLYMERIZATION_COUNT {
         let new_polymer = polymerize(&polymer, &rules);
         polymer = new_polymer;
+        println!("Finished gen {}", i);
     }
     println!(
         "{} - polymer({}) is {}",
