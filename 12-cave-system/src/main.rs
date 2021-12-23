@@ -74,6 +74,27 @@ impl GraphPath {
         *self.visits.last().unwrap() == Cave::End
     }
 
+    fn has_already_visisted_small_cave_twice(&self) -> bool {
+        let visited_small_caves: Vec<&Cave> = self
+            .visits
+            .iter()
+            .filter(|y| if let Cave::Small(_) = y { true } else { false })
+            .collect();
+
+        for visited_cave in &visited_small_caves {
+            if visited_small_caves
+                .iter()
+                .filter(|&y| y == visited_cave)
+                .count()
+                >= 2
+            {
+                return true;
+            }
+        }
+
+        false
+    }
+
     fn get_possible_next_paths(&self, graph: &Graph) -> VecDeque<GraphPath> {
         let mut next_paths = VecDeque::new();
 
@@ -94,7 +115,8 @@ impl GraphPath {
             if *y == Cave::Start {
                 true
             } else if let Cave::Small(_) = y {
-                self.visits.contains(&y)
+                let has_twice_visited = self.has_already_visisted_small_cave_twice();
+                self.visits.contains(&y) && has_twice_visited
             } else {
                 false
             }
